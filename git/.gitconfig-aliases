@@ -1,0 +1,20 @@
+[alias]
+  aa = add --all
+  amend = commit --amend
+  au = add --update
+  branches = branch -l
+  bugfix = "!f() { name=${1}; git checkout -b bugfix/$name; };f"
+  ca = commit --amend
+  cm = commit --message
+  co = checkout
+  co = checkout
+  cp = cherry-pick
+  dt = difftool
+  feature = "!f() { name=${1}; git checkout -b feature/$name; };f"
+  ls = git ls-files
+  mt = mergetool
+  myconfig = config --global -e
+  nb = checkout -b
+  purge = clean -ffdx
+  trim = branch -d
+  undo = reset HEAD~1 --mixed
