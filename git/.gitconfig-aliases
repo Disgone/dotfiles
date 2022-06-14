@@ -59,7 +59,7 @@
 
     find = !git ls-files | grep -i
 
-    pushf = 
+    pushf = push --force-with-lease
 
     # Purge/cleanup
     # !!! These guys should be used with caution !!!
