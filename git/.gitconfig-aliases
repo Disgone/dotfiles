@@ -2,6 +2,11 @@
 #
 # [include]
 #    path = ~/.gitconfig-aliases
+#
+# A lot of these were picked up over time
+#  http://haacked.com/archive/2019/02/14/including-git-aliases/
+#  https://mijingo.com/blog/how-to-create-git-aliases
+#  https://www.30secondsofcode.org/articles/s/git-aliases
 
 [alias]
     # This reads the default branch for the repository.
@@ -16,6 +21,7 @@
     # List the available aliases when your memory starts to slip
     aliases = "!git config -l | grep ^alias\\. | cut -c 7- | sort"
 
+    # Opens a remote repo
     open = "!f(){ URL=$(git config remote.origin.url); start chrome ${URL}; }; f"
 
     ## Shortcut aliases in case I'm feeling lazy
