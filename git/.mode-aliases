@@ -6,7 +6,7 @@
 
 [alias]
     # git hotfix my-bug-name 55102 => hotfixes/h-55102-my-bug-name
-    hotfix = "!f() { NAME=${1}; WORKNUM=${2-'000'}; git checkout -b hotfixes/h-$WORKNUM-$NAME; };f"
+    hotfix = "!f() { NAME=${1?branch name is required}; WORKNUM=${2-'000'}; git checkout -b hotfixes/h-$WORKNUM-$NAME; };f"
 
     # git sandbox my-branch-name => sandbox/ssmith/my-branch-name
-    sandbox = "!f() { NAME=${1}; git checkout -b sandbox/ssmith/$NAME; };f"
+    sandbox = "!f() { NAME=${1?branch name is required}; git checkout -b sandbox/ssmith/$NAME; };f"

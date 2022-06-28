@@ -105,13 +105,13 @@
     pullin = "!f() { DEFAULT=$(git default); git fetch origin && git rebase origin/${1-$DEFAULT}; };f"
 
     # git feature my-feature-name => feature/my-feature-name
-    feature = "!f() { NAME=${1}; git checkout -b feature/$NAME; };f"
+    feature = "!f() { NAME=${1?branch name is required}; git checkout -b feature/$NAME; };f"
 
     # git story my-story-name 51120 => story/51120-my-story-name
-    story = "!f() { NAME=${1-'story-name'}; WORKNUM=${2-'000'}; git checkout -b story/$WORKNUM-$NAME; };f"
+    story = "!f() { NAME=${1?branch name is required}; WORKNUM=${2-'000'}; git checkout -b story/$WORKNUM-$NAME; };f"
 
     # git bugfix my-bug-name 55102 => bugfix/55102-my-bug-name
-    bugfix = "!f() { NAME=${1}; WORKNUM=${2-'000'}; git checkout -b bugfix/$WORKNUM-$NAME; };f"
+    bugfix = "!f() { NAME=${1?branch name is required}; WORKNUM=${2-'000'}; git checkout -b bugfix/$WORKNUM-$NAME; };f"
 
     # Creates a new worktree in a separate location; Useful for cases where you may need to pop into another branch
     # but don't want to disturb your current workspace. e.g. There is a bug in production and you wanna peek at master
