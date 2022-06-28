@@ -107,14 +107,11 @@
     # git feature my-feature-name => feature/my-feature-name
     feature = "!f() { NAME=${1}; git checkout -b feature/$NAME; };f"
 
-    # git story 51120 my-story-name => story/51120-my-story-name
-    story = "!f() { WORKNUM=${1-'000'}; NAME=${2-'story-name'}; git checkout -b story/$WORKNUM-$NAME; };f"
+    # git story my-story-name 51120 => story/51120-my-story-name
+    story = "!f() { NAME=${1-'story-name'}; WORKNUM=${2-'000'}; git checkout -b story/$WORKNUM-$NAME; };f"
 
-    # git bugfix 55102 my-bug-name => bugfix/55102-my-bug-name
-    bugfix = "!f() { WORKNUM=${1-'000'}; NAME=${2}; git checkout -b bugfix/$WORKNUM-$NAME; };f"
-
-    # git sandbox my-branch-name => sandbox/ssmith/my-branch-name
-    sandbox = "!f() { NAME=${1}; git checkout -b sandbox/ssmith/$NAME; };f"
+    # git bugfix my-bug-name 55102 => bugfix/55102-my-bug-name
+    bugfix = "!f() { NAME=${1}; WORKNUM=${2-'000'}; git checkout -b bugfix/$WORKNUM-$NAME; };f"
 
     # Creates a new worktree in a separate location; Useful for cases where you may need to pop into another branch
     # but don't want to disturb your current workspace. e.g. There is a bug in production and you wanna peek at master

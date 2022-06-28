@@ -1,0 +1,12 @@
+# Aliases specific to project work
+# This can be referenced in your .gitconfig by adding the following section:
+#
+# [include]
+#    path = ~/.gitconfig-aliases
+
+[alias]
+    # git hotfix my-bug-name 55102 => hotfixes/h-55102-my-bug-name
+    hotfix = "!f() { NAME=${1}; WORKNUM=${2-'000'}; git checkout -b hotfixes/h-$WORKNUM-$NAME; };f"
+
+    # git sandbox my-branch-name => sandbox/ssmith/my-branch-name
+    sandbox = "!f() { NAME=${1}; git checkout -b sandbox/ssmith/$NAME; };f"
