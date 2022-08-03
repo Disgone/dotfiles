@@ -49,7 +49,7 @@
     # Creates a checkpoint commit with all files -- including unstaged
     checkpoint = !git add -A && git commit -m 'CHECKPOINT'
     
-    # Reverst the previous commit
+    # Reverts the previous commit
     undo = reset HEAD~1 --mixed
 
     # Disable change tracking
