@@ -44,7 +44,7 @@
     # Branches, for my stupid brain will list all local branches.
     branches = branch -l
 
-    stashes = stash list
+    stashes = stash list --date=human
 
     # Creates a checkpoint commit with all files -- including unstaged
     checkpoint = !git add -A && git commit -m 'CHECKPOINT'
