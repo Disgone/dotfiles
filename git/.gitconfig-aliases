@@ -41,10 +41,12 @@
     ss = stash save
     nb = checkout -b
 
-    # Branches, for my stupid brain will list all local branches.
+    # Shortcuts for viewing lists of various Git resources.
     branches = branch -l
-
     stashes = stash list --date=human
+    tags = tag -l
+    remotes = remote -v
+    submodules = submodule status
 
     # Creates a checkpoint commit with all files -- including unstaged
     checkpoint = !git add -A && git commit -m 'CHECKPOINT'
