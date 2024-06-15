@@ -9,20 +9,40 @@
 #  https://www.30secondsofcode.org/articles/s/git-aliases
 
 [alias]
+    ###########################
+    # Default Branch Management
+    ###########################
+
     # This reads the default branch for the repository.
+    # Usage: git default
+    # Example: Displays the name of the default branch (e.g., 'main' or 'master').
     default = !git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'
+    # Note: This alias uses `sed`, which works in Git Bash on Windows. For CMD or PowerShell, alternative methods may be needed.
 
     # Sets the branch being tracked as origin/head
-    set-default = "!f() { name=${1-master}; git remote set-head origin $name; git symbolic-ref refs/remotes/origin/HEAD; };f"
+    # Usage: git set-default [branch-name]
+    # Example: git set-default develop (Sets 'develop' as the default branch for tracking; defaults to 'master' if not specified).
+    set-default = "!f() { name=${1-master}; git remote set-head origin $name; git symbolic-ref refs/remotes/origin/HEAD; }; f"
+
+    ###########################
+    # Configuration and Utility
+    ###########################
 
     # Opens the global config in the default editor.
+    # Usage: git myconfig
+    # Example: Opens the global git config for editing.
     myconfig = config --global -e
 
-    # List the available aliases when your memory starts to slip
+    # Lists all available aliases
+    # Usage: git aliases
+    # Example: Lists all git aliases sorted alphabetically.
     aliases = "!git config -l | grep ^alias\\. | cut -c 7- | sort"
 
-    # Opens a remote repo
-    open = "!f(){ URL=$(git config remote.origin.url); start chrome ${URL}; }; f"
+    # Opens a remote repo URL in the default web browser
+    # Usage: git open
+    # Example: Opens the URL of the remote repository in the default browser.
+    open = "!f() { URL=$(git config remote.origin.url); start chrome ${URL}; }; f"
+    # Note: This is Windows-specific. For cross-platform, use `open` (macOS), `xdg-open` (Linux), and `start` (Windows).
 
     ## Shortcut aliases in case I'm feeling lazy
     ## Cause sometimes 'checkout' is just too many letters.
@@ -47,75 +67,140 @@
     tags = tag -l
     remotes = remote -v
     submodules = submodule status
+    worktrees = worktree list
 
-    # Creates a checkpoint commit with all files -- including unstaged
-    checkpoint = !git add -A && git commit -m 'CHECKPOINT'
-    
-    # Reverts the previous commit
-    undo = reset HEAD~1 --mixed
-
-    # Disable change tracking
-    pause = update-index --assume-unchanged
-
-    # Resume change tracking
-    unpause = update-index --no-assume-unchanged
-
-    # Pulls the workspace into sync with the remote
-    # This can accept additional args.
-    up = !git pull --rebase --prune $@
-
-    # Git log, but for humans
-    logh = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]\\ %Cgreen\\ (%cd)" --decorate --date=human
+    ##########################
+    # File and Change Analysis
+    ##########################
 
     # List the most commonly changed files
-    churn = !git --no-pager log --name-only --oneline | grep -v ' ' | sort | uniq -c | sort -nr | head
+    # Usage: git churn
+    # Example: Shows the most frequently modified files in the repository.
+    churn = "!git --no-pager log --name-only --oneline | grep -v ' ' | sort | uniq -c | sort -nr | head"
 
-    find = !git ls-files | grep -i
+    # Finds files matching a pattern in the repository
+    # Usage: git find pattern
+    # Example: git find *.md (Lists all markdown files in the repository).
+    find = "!git ls-files | grep -i"
 
-    pushf = push --force-with-lease
+    # Git log formatted for human readability
+    # Usage: git logh
+    # Example: Displays the commit log with a human-readable format including commit hash, message, author, and date.
+    logh = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]\\ %Cgreen\\ (%cd)" --decorate --date=human
 
-    # Purge/cleanup
-    # !!! These guys should be used with caution !!!
-    ################################################
+    # Show blame for changes made in a specific commit
+    # Usage: git blamec commit_id filename
+    # Example: git blamec 1234abcd README.md (Shows who made changes in commit 1234abcd in README.md).
+    blamec = "!f() { git blame $2 $1 --date=short; }; f"
 
-    # Use the force to delete the branch
-    # git trim my-local-branch
-    trim = branch -D
+    ##########################
+    # Working State Management
+    ##########################
 
-    # Purges all untracked files/directories
-    purge = "!git clean -fdx $@"
+    # Create a temporary checkpoint commit without pushing
+    # Usage: git checkpoint
+    # Example: Saves all changes in a temporary commit named 'WIP: checkpoint'.
+    checkpoint = "!git add -A && git commit -m 'WIP: checkpoint'"
 
-    # Force deletes all branches
-    buzzsaw = "!git branch -D $(git branch)"
+    # Undo the last commit, preserving changes
+    # Usage: git undo
+    # Example: Reverts the last commit but keeps the changes in the working directory.
+    undo = "reset --soft HEAD~1"
 
-    # Deletes all branches which have been merged into the specified branch
-    # If no branch is provied, use the current default branch
-    trim-merged = "!f() { DEFAULT=$(git default); git branch --merged ${1-$DEFAULT} | grep -v \" ${1-$DEFAULT}$\" | xargs git branch -d; };f"
+    # Pause your work by stashing changes and creating a temporary commit
+    # Usage: git pause
+    # Example: Stashes all changes and creates a temporary commit named 'WIP: paused'.
+    pause = "!git stash push -m 'Paused: $(date +%Y-%m-%d-%H-%M-%S)' && git commit --allow-empty -m 'WIP: paused'"
 
-    # Once a story is merge complete it's time to get ready for the next one
-    # Switch to the defualt branch, update the workspace and removed merged branches
-    rdone = "!f() { DEFAULT=$(git default); git checkout ${1-$DEFAULT} && git up && git trim-merged ${1-$DEFAULT}; };f"
+    # Resume change tracking for files
+    # Usage: git unpause
+    # Example: Resumes tracking changes on files that were previously marked with assume-unchanged.
+    unpause = update-index --no-assume-unchanged
 
+    ####################################################
+    # Purge/cleanup commands
+    # !!! These commands should be used with caution !!!
+    ####################################################
+
+    # Force deletes a local branch with confirmation and red warning message
+    # Usage: git trim branch-name
+    # Example: Asks for confirmation before forcefully deleting 'branch-name'.
+    trim = "!f() { if [ -z \"$1\" ]; then echo -e \"\\033[31mERROR: You must specify a branch name. Usage: git trim branch-name\\033[0m\"; exit 1; fi; echo -e \"\\033[31mWARNING: This will delete the local branch '$1'. Are you sure?\\033[0m (yes/no)\"; read answer; if [ \"$answer\" = \"yes\" ]; then git branch -D $1; else echo 'Operation cancelled'; fi; }; f"
+    # Note: This forcefully deletes a local branch. Use with caution as this cannot be undone.
+
+    # Purges all untracked files and directories with confirmation and red warning message
+    # Usage: git purge
+    # Example: Asks for confirmation before removing all untracked files and directories.
+    purge = "!f() { echo -e \"\\033[31mWARNING: This will remove all untracked files and directories. Are you sure?\\033[0m (yes/no)\"; read answer; if [ \"$answer\" = \"yes\" ]; then git clean -fdx; else echo 'Operation cancelled'; fi; }; f"
+    # Note: This command removes all untracked files and directories. Use carefully to avoid losing data.
+
+    # Force deletes all local branches with confirmation
+    # Usage: git buzzsaw
+    # Example: Asks for confirmation before deleting all local branches.
+    buzzsaw = "!f() { echo -e \"\\033[31mWARNING: This will delete all local branches except the current one. Are you sure?\\033[0m (yes/no)\"; read answer; if [ \"$answer\" = \"yes\" ]; then git branch | grep -v '^*' | xargs git branch -D; else echo 'Operation cancelled'; fi; }; f"
+    # Note: This command asks for user confirmation before deleting all local branches. Only proceed if you are absolutely sure.
+
+    # Deletes all branches that have been merged into the specified branch
+    # Usage: git trim-merged [branch-name]
+    # Example: git trim-merged develop (Deletes branches merged into 'develop'. Defaults to the current default branch if not specified.)
+    trim-merged = "!f() { DEFAULT=$(git default); git branch --merged ${1-$DEFAULT} | grep -v \" ${1-$DEFAULT}$\" | xargs git branch -d; }; f"
+    # Note: This will delete branches that have been merged into the specified branch or the default branch. Ensure you specify the correct branch to avoid accidental deletions.
+
+    # Completely remove a file from history (Use with caution)
+    # Usage: git obliterate path/to/filename
+    # Example: git obliterate secret-files/hidden/secret.txt (Removes 'secret-files/hidden/secret.txt' from the entire repository history).
+    obliterate = "!f() { git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch $1' --prune-empty --tag-name-filter cat -- --all; git push origin --force --all; git push origin --force --tags; }; f"
+
+    ###################
     # Branching Helpers
     ###################
 
-    # Pushes a new local branch to origin
-    # Cause nobody ever remembers the syntax for --set-upstream
+    # Pushes the current local branch to origin with --set-upstream
+    # Usage: git po
+    # Example: Pushes the current branch to origin and sets the upstream to origin/<branch-name>.
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\""
 
-    # Pull changes for a branch and rebase them into the current
-    pullin = "!f() { DEFAULT=$(git default); git fetch origin && git rebase origin/${1-$DEFAULT}; };f"
+    # Push changes to the remote with force-with-lease ('safer force push')
+    # Usage: git pushf
+    # Example: Safely forces a push to the remote by checking if the remote branch has changed.
+    pushf = push --force-with-lease
 
-    # git feature my-feature-name => feature/my-feature-name
-    feature = "!f() { NAME=${1?branch name is required}; git checkout -b feature/$NAME; };f"
+    # Switches to the default branch, updates it, and removes merged branches
+    # Usage: git rdone [branch-name]
+    # Example: git rdone (Switches to the default branch, pulls latest changes, and trims merged branches.)
+    rdone = "!f() { DEFAULT=$(git default); git checkout ${1-$DEFAULT} && git up && git trim-merged ${1-$DEFAULT}; }; f"
+    # Note: This command automates the process of preparing your workspace for new tasks by cleaning up merged branches and updating the default branch.
 
-    # git story my-story-name 51120 => story/51120-my-story-name
-    story = "!f() { NAME=${1?branch name is required}; WORKNUM=${2-'000'}; git checkout -b story/$WORKNUM-$NAME; };f"
+    # Fetches the latest changes from the default branch and updates your current branch
+    # Usage: git fomo
+    # Example: Syncs the current branch with the latest changes from the default branch (fetches and rebases).
+    fomo = "!f() { git fetch origin $(git default) && git rebase origin/$(git default); }; f"
+    # Note: This command keeps your current branch up-to-date with the default branch by rebasing.
 
-    # git bugfix my-bug-name 55102 => bugfix/55102-my-bug-name
-    bugfix = "!f() { NAME=${1?branch name is required}; WORKNUM=${2-'000'}; git checkout -b bugfix/$WORKNUM-$NAME; };f"
+    # Creates a new feature branch with an optional work item number
+    # Usage: git feature [work-item-number] branch-name
+    # Example: git feature 11727 new-ui-component (Creates and checks out 'feature/11727/new-ui-component' from the default branch).
+    # Example: git feature new-ui-component (Creates and checks out 'feature/new-ui-component' from the default branch).
+    feature = "!f() { DEFAULT=$(git default); if [[ \"$1\" =~ ^[0-9]+$ ]]; then WORKNUM=$1; shift; NAME=${1?branch name is required}; git checkout $DEFAULT && git checkout -b feature/$WORKNUM/$NAME; else NAME=${1?branch name is required}; git checkout $DEFAULT && git checkout -b feature/$NAME; fi; }; f"
 
-    # Creates a new worktree in a separate location; Useful for cases where you may need to pop into another branch
-    # but don't want to disturb your current workspace. e.g. There is a bug in production and you wanna peek at master
-    # git damnit main c:\my-new-path
-    damnit = "!f() { DEFAULT=$(git default); NAME=${2-$DEFAULT}; git worktree add ${1} $NAME -b worktree/$NAME; };f"
+    # Creates a new release branch based on the default branch
+    # Usage: git release release-name
+    # Example: git release 1.0.0 (Creates and checks out 'release/1.0.0' from the default branch).
+    release = "!f() { DEFAULT=$(git default); NAME=${1?branch name is required}; git checkout $DEFAULT && git checkout -b release/$NAME; }; f"
+
+    # Creates a new hotfix branch with an optional work item number
+    # Usage: git hotfix [work-item-number] branch-name
+    # Example: git hotfix 55102 fix-login-issue (Creates and checks out 'hotfix/55102/fix-login-issue' from the default branch).
+    # Example: git hotfix fix-login-issue (Creates and checks out 'hotfix/fix-login-issue' from the default branch).
+    hotfix = "!f() { DEFAULT=$(git default); if [[ \"$1\" =~ ^[0-9]+$ ]]; then WORKNUM=$1; shift; NAME=${1?branch name is required}; git checkout $DEFAULT && git checkout -b hotfix/$WORKNUM/$NAME; else NAME=${1?branch name is required}; git checkout $DEFAULT && git checkout -b hotfix/$NAME; fi; }; f"
+
+
+    ###########
+    # Worktrees
+    ###########
+
+    # Creates a new worktree in a specified location
+    # Usage: git damnit path/to/new/worktree [branch-name]
+    # Example: git damnit c:/my-new-path main (Creates a worktree at 'c:/my-new-path' for the 'main' branch).
+    # Example: git damnit c:/my-new-path (Creates a worktree at 'c:/my-new-path' for the default branch).
+    damnit = "!f() { DEFAULT=$(git default); BRANCH=${2-$DEFAULT}; git worktree add ${1} $BRANCH -b worktree/$BRANCH; }; f"
