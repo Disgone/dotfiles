@@ -165,6 +165,11 @@
     # Example: Safely forces a push to the remote by checking if the remote branch has changed.
     pushf = push --force-with-lease
 
+    # Updates the current branch with changes from the remote
+    # Usage: git up
+    # Example: git up (Fetches remote updates and fast-forwards the current branch)
+    up = "!git remote update -p; git merge --ff-only @{u}"
+
     # Switches to the default branch, updates it, and removes merged branches
     # Usage: git rdone [branch-name]
     # Example: git rdone (Switches to the default branch, pulls latest changes, and trims merged branches.)
